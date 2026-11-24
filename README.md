@@ -1,28 +1,75 @@
-# SaaS CRM (formerly Jira Alt)
+# React + TypeScript + Vite
 
-## Project Overview
-This repository is dedicated to building a **Multi-Tenant SaaS CRM** for service businesses (Cleaning, Renovation, Interior Design). 
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-**The Single Source of Truth:** The product vision is defined in `PRD (2).md`. 
+Currently, two official plugins are available:
 
-## Tech Stack (Confirmed)
-- **Runtime:** Cloudflare Workers
-- **Deployment Tool:** Wrangler CLI
-- **Backend API:** Hono
-- **Frontend:** React 18+ with Vite (SPA)
-- **Database:** Cloudflare D1 (SQLite)
-- **Auth:** Google OAuth / Email + KV Sessions
-- **UI/UX:** Mobile-First, TikTok-style vertical feed, Bottom Navigation
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
 
-## Current State
-The initial Vanilla JS prototype (Kanban board) will be refactored into the React + Hono architecture defined above.
+## React Compiler
 
-- [x] Prototype: Initialize repo and Codespaces
-- [x] Prototype: Authenticate Wrangler & create D1 database
-- [x] Prototype: Deploy to Cloudflare Workers
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-## Upcoming
-- [ ] **Phase 1:** Initialize React + Vite + Hono architecture.
-- [ ] **Phase 2:** Multi-tenant Database Schema (Tenant ID isolation).
-- [ ] **Phase 3:** Core Features (Contacts, Leads, Jobs, Activities).
-- [ ] **Phase 4:** TikTok-style Mobile UI Feed & Bottom Navigation.
+## Expanding the ESLint configuration
+
+If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+
+```js
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+
+      // Remove tseslint.configs.recommended and replace with this
+      tseslint.configs.recommendedTypeChecked,
+      // Alternatively, use this for stricter rules
+      tseslint.configs.strictTypeChecked,
+      // Optionally, add this for stylistic rules
+      tseslint.configs.stylisticTypeChecked,
+
+      // Other configs...
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
+
+```
+
+You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+
+```js
+// eslint.config.js
+import reactX from 'eslint-plugin-react-x'
+import reactDom from 'eslint-plugin-react-dom'
+
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+      // Enable lint rules for React
+      reactX.configs['recommended-typescript'],
+      // Enable lint rules for React DOM
+      reactDom.configs.recommended,
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
+
+```

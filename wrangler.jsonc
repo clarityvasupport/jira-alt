@@ -1,16 +1,14 @@
 {
-  "name": "jira-alt",
-  "main": "src/index.ts",
+  "name": "crm-app",
+  "main": "src/worker/index.ts",
   "compatibility_date": "2026-11-24",
-  "observability": {
-    "enabled": true
-  },
   "assets": {
-    "directory": "./public"
+    "directory": "./dist",
+    "binding": "ASSETS"
   },
   "d1_databases": [
     {
-      "binding": "jira_db",
+      "binding": "DB",
       "database_name": "jira-db",
       "database_id": "7d6b7977-4f78-44a3-a9f1-01495d31df11"
     }
