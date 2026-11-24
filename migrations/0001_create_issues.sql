@@ -1,0 +1,7 @@
+CREATE TABLE issues (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  description TEXT,
+  status TEXT DEFAULT 'To Do',
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
