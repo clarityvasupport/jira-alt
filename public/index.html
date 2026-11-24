@@ -7,51 +7,108 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 p-8 font-sans">
-    <div class="max-w-4xl mx-auto">
+    <div class="max-w-6xl mx-auto">
         <h1 class="text-3xl font-bold mb-6">Jira Alt</h1>
+        
+        <!-- Create Issue Form -->
         <div class="bg-white p-6 rounded shadow mb-6">
-            <h2 class="text-xl font-bold mb-4">Create Issue</h2>
             <form id="create-form" class="flex gap-4">
                 <input type="text" id="title" placeholder="Issue title" class="border p-2 rounded flex-1" required>
                 <input type="text" id="description" placeholder="Description" class="border p-2 rounded flex-1">
                 <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Add</button>
             </form>
         </div>
-        <div class="bg-white p-6 rounded shadow">
-            <h2 class="text-xl font-bold mb-4">Issues</h2>
-            <ul id="issues-list" class="space-y-4"></ul>
+
+        <!-- Kanban Board -->
+        <div class="grid grid-cols-3 gap-6">
+            <!-- To Do Column -->
+            <div class="bg-white p-4 rounded shadow flex flex-col gap-4">
+                <h2 class="font-bold text-gray-700 border-b pb-2">To Do</h2>
+                <div id="col-To-Do" class="space-y-4 min-h-[100px]"></div>
+            </div>
+            
+            <!-- In Progress Column -->
+            <div class="bg-white p-4 rounded shadow flex flex-col gap-4">
+                <h2 class="font-bold text-gray-700 border-b pb-2">In Progress</h2>
+                <div id="col-In-Progress" class="space-y-4 min-h-[100px]"></div>
+            </div>
+            
+            <!-- Done Column -->
+            <div class="bg-white p-4 rounded shadow flex flex-col gap-4">
+                <h2 class="font-bold text-gray-700 border-b pb-2">Done</h2>
+                <div id="col-Done" class="space-y-4 min-h-[100px]"></div>
+            </div>
         </div>
     </div>
+
     <script>
         async function loadIssues() {
             const res = await fetch('/issues');
             const issues = await res.json();
-            const list = document.getElementById('issues-list');
-            list.innerHTML = '';
+            
+            // Clear all columns
+            const columns = ['To-Do', 'In-Progress', 'Done'];
+            columns.forEach(col => {
+                document.getElementById(`col-${col}`).innerHTML = '';
+            });
+
+            // Populate columns
             issues.forEach(issue => {
-                const li = document.createElement('li');
-                li.className = 'border p-4 rounded bg-gray-50';
-                li.innerHTML = `
-                    <div class="font-bold">#${issue.id} ${issue.title}</div>
-                    <div class="text-gray-600 text-sm">${issue.description || 'No description'}</div>
-                    <div class="text-xs font-bold text-blue-600 mt-2">${issue.status}</div>
+                const colId = `col-${issue.status.replace(' ', '-')}`;
+                const container = document.getElementById(colId);
+                if (!container) return;
+
+                const card = document.createElement('div');
+                card.className = 'border p-4 rounded bg-gray-50 flex flex-col gap-2 shadow-sm';
+                card.innerHTML = `
+                    <div class="font-bold text-sm">#${issue.id} ${issue.title}</div>
+                    <div class="text-gray-600 text-xs mb-2">${issue.description || 'No description'}</div>
+                    <div class="flex gap-2 mt-auto">
+                        ${issue.status !== 'To Do' ? `<button onclick="moveIssue(${issue.id}, '${getPrevStatus(issue.status)}')" class="text-xs bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded">&larr; Move</button>` : ''}
+                        ${issue.status !== 'Done' ? `<button onclick="moveIssue(${issue.id}, '${getNextStatus(issue.status)}')" class="text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 px-2 py-1 rounded">Move &rarr;</button>` : ''}
+                    </div>
                 `;
-                list.appendChild(li);
+                container.appendChild(card);
             });
         }
+
+        function getNextStatus(status) {
+            if (status === 'To Do') return 'In Progress';
+            if (status === 'In Progress') return 'Done';
+            return 'Done';
+        }
+
+        function getPrevStatus(status) {
+            if (status === 'Done') return 'In Progress';
+            if (status === 'In Progress') return 'To Do';
+            return 'To Do';
+        }
+
+        async function moveIssue(id, newStatus) {
+            await fetch(`/issues/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: newStatus })
+            });
+            loadIssues(); // Refresh board
+        }
+
         document.getElementById('create-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const title = document.getElementById('title').value;
             const description = document.getElementById('description').value;
+            
             await fetch('/issues', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ title, description })
             });
+            
             document.getElementById('title').value = '';
             document.getElementById('description').value = '';
             loadIssues();
         });
+
         loadIssues();
     </script>
 </body>

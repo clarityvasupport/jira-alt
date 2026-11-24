@@ -35,4 +35,29 @@ app.post('/issues', async (c) => {
   }
 })
 
+// Update issue status
+app.put('/issues/:id', async (c) => {
+  try {
+    const id = c.req.param('id')
+    const body = await c.req.json()
+    
+    if (!body.status) {
+      return c.json({ error: 'Status is required' }, 400)
+    }
+
+    const stmt = c.env.jira_db.prepare(
+      'UPDATE issues SET status = ?1 WHERE id = ?2 RETURNING *'
+    ).bind(body.status, id)
+
+    const result = await stmt.first()
+    if (!result) {
+      return c.json({ error: 'Issue not found' }, 404)
+    }
+    
+    return c.json(result)
+  } catch (e: any) {
+    return c.json({ error: e.message }, 500)
+  }
+})
+
 export default app

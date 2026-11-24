@@ -10,10 +10,8 @@
 
 ## 3. Surgical Edit Format
 When instructing the user to edit directly in the editor, always provide:
-- **Regex/Target**: What to search for (Ctrl+F).
-- **Anchor Before**: The line(s) immediately above the insertion point.
-- **New Code**: The code to insert.
-- **Anchor After**: The line(s) immediately below the insertion point.
+- **Find (Exact Code)**: The exact string/block to search for.
+- **Replace With (Exact Code)**: The new code, including the "Find" code so the user can do a single Ctrl+V.
 
 ## 4. Milestone Updates
 - Every time a milestone is completed, update `README.md`.
