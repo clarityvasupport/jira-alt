@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jipa Alt</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8 font-sans">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-6">Jira Alt</h1>
+        <div class="bg-white p-6 rounded shadow mb-6">
+            <h2 class="text-xl font-bold mb-4">Create Issue</h2>
+            <form id="create-form" class="flex gap-4">
+                <input type="text" id="title" placeholder="Issue title" class="border p-2 rounded flex-1" required>
+                <input type="text" id="description" placeholder="Description" class="border p-2 rounded flex-1">
+                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Add</button>
+            </form>
+        </div>
+        <div class="bg-white p-6 rounded shadow">
+            <h2 class="text-xl font-bold mb-4">Issues</h2>
+            <ul id="issues-list" class="space-y-4"></ul>
+        </div>
+    </div>
+    <script>
+        async function loadIssues() {
+            const res = await fetch('/issues');
+            const issues = await res.json();
+            const list = document.getElementById('issues-list');
+            list.innerHTML = '';
+            issues.forEach(issue => {
+                const li = document.createElement('li');
+                li.className = 'border p-4 rounded bg-gray-50';
+                li.innerHTML = `
+                    <div class="font-bold">#${issue.id} ${issue.title}</div>
+                    <div class="text-gray-600 text-sm">${issue.description || 'No description'}</div>
+                    <div class="text-xs font-bold text-blue-600 mt-2">${issue.status}</div>
+                `;
+                list.appendChild(li);
+            });
+        }
+        document.getElementById('create-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const title = document.getElementById('title').value;
+            const description = document.getElementById('description').value;
+            await fetch('/issues', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, description })
+            });
+            document.getElementById('title').value = '';
+            document.getElementById('description').value = '';
+            loadIssues();
+        });
+        loadIssues();
+    </script>
+</body>
+</html>
