@@ -1,24 +1,28 @@
-# Jira Alternative
+# SaaS CRM (formerly Jira Alt)
 
-Personal project tracker built on Cloudflare's edge stack.
+## Project Overview
+This repository is dedicated to building a **Multi-Tenant SaaS CRM** for service businesses (Cleaning, Renovation, Interior Design). 
 
-## Tech Stack
+**The Single Source of Truth:** The product vision is defined in `PRD (2).md`. 
+
+## Tech Stack (Confirmed)
 - **Runtime:** Cloudflare Workers
-- **Framework:** Hono
+- **Deployment Tool:** Wrangler CLI
+- **Backend API:** Hono
+- **Frontend:** React 18+ with Vite (SPA)
 - **Database:** Cloudflare D1 (SQLite)
-- **Language:** TypeScript
-- **Frontend:** Vanilla HTML/JS + Tailwind CSS
-
-## Progress
-- [x] Initialize repo and devcontainer
-- [x] Install Hono, Wrangler, TypeScript
-- [x] Authenticate Wrangler & create D1 database
-- [x] Deploy to Cloudflare Workers
-- [x] Build Issues CRUD API & Basic UI (Milestone 1)
-- [x] Implement Kanban board columns and status updates (Milestone 2)
-- [x] Premium SaaS Light Mode UI, Routing Tabs (Board, Issues, Activity, Prefs), Edit/Delete (Milestone 3)
-- [ ] Issue Metadata: Priority, Assignee, Due Date
-- [ ] Automation Engine (Custom workflows)
+- **Auth:** Google OAuth / Email + KV Sessions
+- **UI/UX:** Mobile-First, TikTok-style vertical feed, Bottom Navigation
 
 ## Current State
-Full functioning Kanban board and list view. Users can create, edit, delete, and move issues. Sidebar routing works with client-side rendering.
+The initial Vanilla JS prototype (Kanban board) will be refactored into the React + Hono architecture defined above.
+
+- [x] Prototype: Initialize repo and Codespaces
+- [x] Prototype: Authenticate Wrangler & create D1 database
+- [x] Prototype: Deploy to Cloudflare Workers
+
+## Upcoming
+- [ ] **Phase 1:** Initialize React + Vite + Hono architecture.
+- [ ] **Phase 2:** Multi-tenant Database Schema (Tenant ID isolation).
+- [ ] **Phase 3:** Core Features (Contacts, Leads, Jobs, Activities).
+- [ ] **Phase 4:** TikTok-style Mobile UI Feed & Bottom Navigation.

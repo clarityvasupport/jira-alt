@@ -7,7 +7,7 @@ source_of_truth:
   - "Data Model v1.0"
   - "Tech Stack v1.0"
   - "Navigation Map v1.0"
-deployment_baseline: "Cloudflare Pages + Pages Functions"
+deployment_baseline: "Cloudflare Workers + Hono"
 build_gate: "No build starts until wireframes are approved and the Product Owner says go."
 note: "This PRD deliberately follows v0.4. It does not adopt the later v0.5 Workers + vinext pivot."
 ---
@@ -25,9 +25,9 @@ note: "This PRD deliberately follows v0.4. It does not adopt the later v0.5 Work
 | Owner | Product Owner |
 | Primary users | Service-business owners, admins, staff |
 | MVP launch plan | Free plan only |
-| Deployment | Cloudflare Pages + Pages Functions |
+| Deployment | Cloudflare Workers + Hono |
 | Dev environment | GitHub + Codespaces |
-| Cloudflare management | Dashboard only; no CLI, no Wrangler |
+| Cloudflare management | Deployed via Wrangler CLI |
 
 ---
 
@@ -282,35 +282,35 @@ Left sidebar: Dashboard, Contacts, Leads, Jobs, Recurring, Activities, Tasks, Fo
 
 ## 9. Tech Stack and Architecture
 
-> Baseline: v0.4. Uses Cloudflare Pages + Pages Functions. No CLI, no Wrangler.
+> Baseline: v0.4. Uses Cloudflare Workers + Hono. Deployed via Wrangler CLI.
 
 | Layer | Decision |
 |---|---|
-| Frontend framework | Next.js 14+ App Router with TypeScript |
+| Frontend framework | React 14+ App Router with TypeScript |
 | Styling | Tailwind CSS + shadcn/ui |
-| Hosting | Cloudflare Pages, connected to GitHub repo |
-| Backend runtime | Cloudflare Pages Functions in `/functions`; no separate Worker files |
+| Hosting | Cloudflare Workers, connected to GitHub repo |
+| Backend runtime | Cloudflare Workers Functions in `/functions`; no separate Worker files |
 | Database | Cloudflare D1 |
 | Cache / sessions | Cloudflare KV |
 | File storage | Cloudflare R2 — future |
-| Auth | Google OAuth + email/password via Pages Functions + KV sessions |
-| Password hashing | Web Crypto API (PBKDF2 or compatible library) in Pages Functions |
-| Cron / recurring jobs | Cloudflare Workers Cron Triggers via Dashboard, calling Pages Functions endpoints |
+| Auth | Google OAuth + email/password via Hono API + KV sessions |
+| Password hashing | Web Crypto API (PBKDF2 or compatible library) in Hono API |
+| Cron / recurring jobs | Cloudflare Workers Cron Triggers via Dashboard, calling Hono API endpoints |
 | Repo | GitHub `crm-saas`, private |
 | Dev environment | GitHub Codespaces |
-| Cloudflare management | Dashboard only; no CLI, no Wrangler |
-| CI/CD | Cloudflare Pages auto-deploy on push to main |
+| Cloudflare management | Deployed via Wrangler CLI |
+| CI/CD | Cloudflare Workers auto-deploy on push to main |
 | Secrets | Cloudflare Dashboard environment variables |
 | Billing | Stripe later; Dashboard only |
 | Export | CSV client-side, PDF client-side, Google Sheets via API |
 
 ### 9.1 Architecture Constraints
 
-- No CLI and no Wrangler for deployment.
+- Deployed via Wrangler CLI.
 - All Cloudflare resources managed through the Dashboard.
-- Pages Functions handle API/auth/form endpoints.
-- Cron Triggers invoke Pages Functions endpoints for recurring jobs and reminders.
-- Tenant isolation must be enforced in every Pages Function and D1 query.
+- Hono API handles API/auth/form endpoints.
+- Cron Triggers invoke Hono API endpoints for recurring jobs and reminders.
+- Tenant isolation must be enforced in every Hono route and D1 query.
 
 ---
 
@@ -375,7 +375,7 @@ Left sidebar: Dashboard, Contacts, Leads, Jobs, Recurring, Activities, Tasks, Fo
 | Security | Tenant isolation, secure sessions in KV, password hashing, OAuth validation |
 | Privacy | Consent, export, deletion, audit logging |
 | Reliability | Recurring job generation and reminders must tolerate retries |
-| Maintainability | TypeScript, shared tenant/auth helpers, clear Pages Functions structure |
+| Maintainability | TypeScript, shared tenant/auth helpers, clear Hono API structure |
 | Accessibility | Forms and navigation usable with keyboard/screen readers where practical |
 | Observability | Audit logs and error logs include tenant context without sensitive leakage |
 
@@ -386,7 +386,7 @@ Left sidebar: Dashboard, Contacts, Leads, Jobs, Recurring, Activities, Tasks, Fo
 | # | Milestone | Status |
 |---|---|---|
 | M0 | Repo + skeleton | Pending |
-| M1 | First deploy to Cloudflare Pages | Pending |
+| M1 | First deploy to Cloudflare Workers | Pending |
 | M2 | D1 + KV provisioned via Dashboard | Pending |
 | M3 | Auth — email/password | Pending |
 | M4 | Auth — Google OAuth | Pending |
@@ -417,7 +417,7 @@ No build starts until wireframes are approved and the Product Owner says go.
 |---|---|
 | Tenant data leakage | Enforce `tenant_id` in every query; test cross-tenant access |
 | Stale context between chats | Use Handoff v0.4 as source of truth; update handoff after major decisions |
-| Cloudflare Pages Functions limitations | Keep endpoints small; validate auth/session in shared helpers |
+| Cloudflare Workers Functions limitations | Keep endpoints small; validate auth/session in shared helpers |
 | Recurring job duplication | Use idempotent generation and next-occurrence tracking |
 | Auth security | Use established hashing, secure KV sessions, OAuth validation |
 | Legal/compliance gaps | Attorney review before launch |
@@ -435,7 +435,7 @@ No build starts until wireframes are approved and the Product Owner says go.
 - Landing page: deferred.
 - PDF: client-side only.
 - GitHub: repo + Codespaces.
-- Cloudflare: Dashboard only, Pages Functions only.
+- Cloudflare: Deployed via Wrangler CLI, Hono API only.
 
 ---
 
@@ -443,4 +443,4 @@ No build starts until wireframes are approved and the Product Owner says go.
 
 | Version | Date | Notes |
 |---|---|---|
-| 1.0 | — | PRD created from Handoff v0.4 and confirmed v1.0 artifacts. Uses Cloudflare Pages + Pages Functions baseline. Ready for wireframes. |
+| 1.0 | — | PRD created from Handoff v0.4 and confirmed v1.0 artifacts. Uses Cloudflare Workers + Hono baseline. Ready for wireframes. |
