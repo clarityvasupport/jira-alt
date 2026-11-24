@@ -18,7 +18,8 @@ A mobile-first, TikTok-style CRM designed for service businesses (Cleaning, Reno
 ├── .devcontainer/
 ├── migrations/
 │   ├── 0001_create_issues.sql    (Prototype schema)
-│   └── 0002_saas_schema.sql      (Multi-tenant schema)
+│   ├── 0002_saas_schema.sql      (Multi-tenant schema)
+│   └── 0003_expand_schema.sql    (Jobs, Tasks, Stages, Automations)
 ├── public/
 ├── src/
 │   ├── assets/
@@ -54,7 +55,7 @@ Since this is a Single Page Application (SPA), routing is handled via React stat
 - `Settings Sub-pages`: Replaces Settings view with Team/Fields/Automations.
 
 ## Current State
-The entire Frontend UI shell is **100% complete** with realistic mock data. All tabs, sub-pages, bottom sheets, and forms are fully interactive. The backend is currently a basic Hono API serving test data from D1.
+The entire Frontend UI shell is **100% complete** with realistic mock data. The D1 database schema has been expanded to support all entities.
 
 - [x] **Phase 1:** Initialize React + Vite + Hono architecture.
 - [x] **Phase 2:** Multi-tenant Database Schema (Tenants, Leads).
@@ -62,8 +63,9 @@ The entire Frontend UI shell is **100% complete** with realistic mock data. All 
 - [x] **Phase 4:** Global Detail Drawer (Details, Activity, Jobs) with Mock Data.
 - [x] **Phase 5:** Detailed Jobs UI (Task Checklists, Progress Bars).
 - [x] **Phase 6:** Settings Sub-pages (Team Limits, Custom Fields, Automations).
+- [x] **Phase 7:** Expanded D1 Schema (Jobs, Tasks, Pipeline Stages, Automations).
 
 ## Upcoming
-- [ ] **Phase 7:** Wire the Frontend to the Backend API (Replace `mockLeads` and `mockJobs` with real `fetch()` calls).
 - [ ] **Phase 8:** Build Hono CRUD routes for Jobs, Activities, and Custom Fields.
-- [ ] **Phase 9:** Implement Auth & Tenant Isolation (Google OAuth).
+- [ ] **Phase 9:** Wire the React Frontend to the Backend API (Replace all mock data with `fetch`).
+- [ ] **Phase 10:** Auth & Tenant Isolation (Google OAuth).

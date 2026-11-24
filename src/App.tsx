@@ -27,6 +27,8 @@ interface Job {
   title: string;
   client: string;
   type: 'One-time' | 'Recurring';
+  frequency?: string;
+  interval?: number;
   status: 'Pending' | 'In Progress' | 'Completed';
   progress: number;
   tasks: { id: number; title: string; completed: boolean }[];
@@ -38,6 +40,8 @@ const mockJobs: Job[] = [
     title: 'Deep Clean - Office', 
     client: 'Sparkle Cleaning Co.', 
     type: 'Recurring', 
+    frequency: 'Weeks',
+    interval: 2,
     status: 'In Progress', 
     progress: 50,
     tasks: [
@@ -62,15 +66,17 @@ const mockJobs: Job[] = [
   }
 ];
 
-const pipelineStages = ['New Lead', 'Qualified', 'Proposal', 'Closed Won'];
-
 export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>('home');
   const [leads, setLeads] = useState<Lead[]>(mockLeads);
-  const [jobs] = useState<Job[]>(mockJobs);
+  const [jobs, setJobs] = useState<Job[]>(mockJobs);
   const [showFabMenu, setShowFabMenu] = useState(false);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
-  const [settingsView, setSettingsView] = useState<'main' | 'team' | 'fields' | 'automations'>('main');
+  const [settingsView, setSettingsView] = useState<'main' | 'team' | 'fields' | 'automations' | 'forms' | 'pipeline'>('main');
+  
+  const [stages, setStages] = useState<string[]>(['New Lead', 'Qualified', 'Proposal', 'Closed Won']);
+  const [newStageName, setNewStageName] = useState('');
+  const [selectedForm, setSelectedForm] = useState<string | null>(null);
   
   // Mock Automations State
   const [automations, setAutomations] = useState([
@@ -86,6 +92,13 @@ export default function App() {
   
   // Form State
   const [formData, setFormData] = useState({ company: '', contact: '', location: '', value: '', status: 'New Lead', description: '' });
+  
+  // New Modals State
+  const [showContactModal, setShowContactModal] = useState(false);
+  const [contactData, setContactData] = useState({ name: '', company: '', email: '', phone: '' });
+  
+  const [showJobModal, setShowJobModal] = useState(false);
+  const [jobData, setJobData] = useState({ title: '', client: '', type: 'One-time' as 'One-time' | 'Recurring', frequency: 'Weeks', interval: 1 });
 
   return (
     <div className="max-w-md mx-auto h-[100dvh] bg-gray-50 relative flex flex-col overflow-hidden shadow-2xl sm:border-x sm:border-gray-200 font-sans">
@@ -135,7 +148,7 @@ export default function App() {
         {/* PIPELINE TAB */}
         {activeTab === 'pipeline' && (
           <div className="h-full overflow-x-auto flex gap-4 p-4 items-start snap-x">
-            {pipelineStages.map(stage => (
+            {stages.map(stage => (
               <div key={stage} className="w-72 flex-shrink-0 bg-gray-100 rounded-xl p-3 snap-center flex flex-col gap-3 h-full overflow-y-auto">
                 <div className="flex justify-between items-center px-1">
                   <h3 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">{stage}</h3>
@@ -197,7 +210,7 @@ export default function App() {
                       {job.status}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-500 mb-3">{job.client} • {job.type}</p>
+                  <p className="text-sm text-gray-500 mb-3">{job.client} • {job.type} {job.type === 'Recurring' && `(Every ${job.interval} ${job.frequency})`}</p>
                   
                   <div className="w-full bg-gray-100 rounded-full h-1.5 mb-1">
                     <div className="bg-indigo-600 h-1.5 rounded-full" style={{ width: `${job.progress}%` }}></div>
@@ -227,6 +240,14 @@ export default function App() {
                   </div>
                   <div onClick={() => setSettingsView('automations')} className="p-4 border-b border-gray-100 font-medium hover:bg-gray-50 cursor-pointer flex justify-between items-center">
                     <div className="flex items-center gap-3 text-gray-800"><Settings size={18} className="text-gray-400" /> Automations</div>
+                    <ChevronRight size={18} className="text-gray-400" />
+                  </div>
+                  <div onClick={() => setSettingsView('forms')} className="p-4 border-b border-gray-100 font-medium hover:bg-gray-50 cursor-pointer flex justify-between items-center">
+                    <div className="flex items-center gap-3 text-gray-800"><CheckSquare size={18} className="text-gray-400" /> Client Forms</div>
+                    <ChevronRight size={18} className="text-gray-400" />
+                  </div>
+                  <div onClick={() => setSettingsView('pipeline')} className="p-4 border-b border-gray-100 font-medium hover:bg-gray-50 cursor-pointer flex justify-between items-center">
+                    <div className="flex items-center gap-3 text-gray-800"><LayoutDashboard size={18} className="text-gray-400" /> Pipeline Settings</div>
                     <ChevronRight size={18} className="text-gray-400" />
                   </div>
                 </div>
@@ -286,6 +307,58 @@ export default function App() {
               </div>
             )}
 
+            {/* FORMS SUB-PAGE */}
+            {settingsView === 'forms' && (
+              <div className="space-y-4 animate-in slide-in-from-right-4 fade-in duration-200">
+                <button onClick={() => setSettingsView('main')} className="text-sm font-semibold text-indigo-600 mb-2 flex items-center gap-1">&larr; Back</button>
+                <div className="mb-4">
+                  <h2 className="text-xl font-bold text-gray-900">Client Forms</h2>
+                  <p className="text-xs text-gray-500">Intake forms and checklists</p>
+                </div>
+                <div className="bg-white rounded-xl border border-gray-100 shadow-sm divide-y divide-gray-50">
+                  {['New Client Intake', 'Post-Job Satisfaction Survey', 'Site Visit Checklist'].map((formName, i) => (
+                    <div key={i} className="p-4 flex justify-between items-center cursor-pointer hover:bg-gray-50" onClick={() => setSelectedForm(formName)}>
+                      <span className="text-sm font-medium text-gray-800">{formName}</span>
+                      <span className="text-xs text-indigo-600 font-semibold">Fill &rarr;</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* PIPELINE SUB-PAGE */}
+            {settingsView === 'pipeline' && (
+              <div className="space-y-4 animate-in slide-in-from-right-4 fade-in duration-200">
+                <button onClick={() => setSettingsView('main')} className="text-sm font-semibold text-indigo-600 mb-2 flex items-center gap-1">&larr; Back</button>
+                <div className="mb-4">
+                  <h2 className="text-xl font-bold text-gray-900">Pipeline Stages</h2>
+                  <p className="text-xs text-gray-500">Customize your sales process</p>
+                </div>
+                
+                <div className="bg-white rounded-xl border border-gray-100 shadow-sm divide-y divide-gray-50 mb-4">
+                  {stages.map((stage, i) => (
+                    <div key={i} className="p-4 flex justify-between items-center">
+                      <span className="text-sm font-medium text-gray-800">{stage}</span>
+                      {stages.length > 1 && (
+                        <button onClick={() => setStages(stages.filter((_, idx) => idx !== i))} className="text-xs text-red-500 font-semibold hover:text-red-700">Remove</button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <form onSubmit={(e) => {
+                  e.preventDefault();
+                  if (newStageName.trim() && !stages.includes(newStageName.trim())) {
+                    setStages([...stages, newStageName.trim()]);
+                    setNewStageName('');
+                  }
+                }} className="flex gap-2">
+                  <input required value={newStageName} onChange={(e) => setNewStageName(e.target.value)} placeholder="New stage name..." className="flex-1 border border-gray-200 rounded-xl p-3 focus:outline-none focus:border-indigo-500 text-sm" />
+                  <button type="submit" className="bg-indigo-600 text-white px-4 rounded-xl font-semibold text-sm hover:bg-indigo-700">Add</button>
+                </form>
+              </div>
+            )}
+
             {/* AUTOMATIONS SUB-PAGE */}
             {settingsView === 'automations' && (
               <div className="space-y-4 animate-in slide-in-from-right-4 fade-in duration-200">
@@ -322,8 +395,8 @@ export default function App() {
         {showFabMenu && (
           <div className="bg-white p-2 rounded-xl shadow-lg border border-gray-100 flex flex-col gap-1 w-40 mb-2">
             <button onClick={() => { setShowLeadModal(true); setShowFabMenu(false); }} className="text-left px-3 py-2 text-sm font-medium hover:bg-gray-50 rounded-lg text-gray-700">New Lead</button>
-            <button className="text-left px-3 py-2 text-sm font-medium hover:bg-gray-50 rounded-lg text-gray-700">New Contact</button>
-            <button className="text-left px-3 py-2 text-sm font-medium hover:bg-gray-50 rounded-lg text-gray-700">New Job</button>
+            <button onClick={() => { setShowContactModal(true); setShowFabMenu(false); }} className="text-left px-3 py-2 text-sm font-medium hover:bg-gray-50 rounded-lg text-gray-700">New Contact</button>
+            <button onClick={() => { setShowJobModal(true); setShowFabMenu(false); }} className="text-left px-3 py-2 text-sm font-medium hover:bg-gray-50 rounded-lg text-gray-700">New Job</button>
           </div>
         )}
         <button 
@@ -504,7 +577,9 @@ export default function App() {
             
             <div className="flex-1 overflow-y-auto p-5 bg-gray-50 space-y-4">
               <div className="flex gap-2">
-                 <span className="bg-indigo-50 text-indigo-700 text-xs font-semibold px-3 py-1 rounded-full border border-indigo-100">{selectedJob.type}</span>
+                 <span className="bg-indigo-50 text-indigo-700 text-xs font-semibold px-3 py-1 rounded-full border border-indigo-100">
+                   {selectedJob.type} {selectedJob.type === 'Recurring' ? `• Every ${selectedJob.interval} ${selectedJob.frequency}` : ''}
+                 </span>
                  <span className="bg-gray-100 text-gray-600 text-xs font-semibold px-3 py-1 rounded-full">{selectedJob.status}</span>
               </div>
 
@@ -528,6 +603,149 @@ export default function App() {
                 Update Job Status
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* CREATE CONTACT MODAL */}
+      {showContactModal && (
+        <div className="absolute inset-0 bg-black/40 z-50 flex flex-col justify-end" onClick={() => setShowContactModal(false)}>
+          <div className="bg-white rounded-t-2xl p-5 h-[80%] overflow-y-auto flex flex-col shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-gray-900">New Contact</h2>
+              <button onClick={() => setShowContactModal(false)} className="p-2 bg-gray-100 rounded-full text-gray-600"><X size={20} /></button>
+            </div>
+            <form className="flex flex-col gap-4 flex-1" onSubmit={(e) => {
+              e.preventDefault();
+              alert(`Contact ${contactData.name} added (UI only)`);
+              setShowContactModal(false);
+              setContactData({ name: '', company: '', email: '', phone: '' });
+            }}>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase">Full Name</label>
+                <input required value={contactData.name} onChange={e => setContactData({...contactData, name: e.target.value})} className="w-full border border-gray-200 rounded-xl p-3 focus:outline-none focus:border-indigo-500" placeholder="e.g. Jane Doe" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase">Company</label>
+                <input value={contactData.company} onChange={e => setContactData({...contactData, company: e.target.value})} className="w-full border border-gray-200 rounded-xl p-3 focus:outline-none focus:border-indigo-500" placeholder="e.g. Acme Corp" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase">Email</label>
+                <input type="email" required value={contactData.email} onChange={e => setContactData({...contactData, email: e.target.value})} className="w-full border border-gray-200 rounded-xl p-3 focus:outline-none focus:border-indigo-500" placeholder="jane@example.com" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase">Phone</label>
+                <input type="tel" value={contactData.phone} onChange={e => setContactData({...contactData, phone: e.target.value})} className="w-full border border-gray-200 rounded-xl p-3 focus:outline-none focus:border-indigo-500" placeholder="+1 (555) 000-0000" />
+              </div>
+              <div className="mt-auto pt-4 pb-safe">
+                <button type="submit" className="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-indigo-700">Save Contact</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* CREATE JOB MODAL */}
+      {showJobModal && (
+        <div className="absolute inset-0 bg-black/40 z-50 flex flex-col justify-end" onClick={() => setShowJobModal(false)}>
+          <div className="bg-white rounded-t-2xl p-5 h-[80%] overflow-y-auto flex flex-col shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-gray-900">New Job</h2>
+              <button onClick={() => setShowJobModal(false)} className="p-2 bg-gray-100 rounded-full text-gray-600"><X size={20} /></button>
+            </div>
+            <form className="flex flex-col gap-4 flex-1" onSubmit={(e) => {
+              e.preventDefault();
+              const newJob: Job = {
+                id: Date.now(),
+                title: jobData.title,
+                client: jobData.client,
+                type: jobData.type,
+                frequency: jobData.type === 'Recurring' ? jobData.frequency : undefined,
+                interval: jobData.type === 'Recurring' ? jobData.interval : undefined,
+                status: 'Pending',
+                progress: 0,
+                tasks: []
+              };
+              setJobs([newJob, ...jobs]);
+              setShowJobModal(false);
+              setJobData({ title: '', client: '', type: 'One-time', frequency: 'Weeks', interval: 1 });
+            }}>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase">Job Title</label>
+                <input required value={jobData.title} onChange={e => setJobData({...jobData, title: e.target.value})} className="w-full border border-gray-200 rounded-xl p-3 focus:outline-none focus:border-indigo-500" placeholder="e.g. Deep Clean - Office" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase">Client / Company</label>
+                <input required value={jobData.client} onChange={e => setJobData({...jobData, client: e.target.value})} className="w-full border border-gray-200 rounded-xl p-3 focus:outline-none focus:border-indigo-500" placeholder="e.g. Sparkle Cleaning Co." />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase">Job Type</label>
+                <select value={jobData.type} onChange={e => setJobData({...jobData, type: e.target.value as 'One-time' | 'Recurring'})} className="w-full border border-gray-200 rounded-xl p-3 focus:outline-none focus:border-indigo-500 bg-white">
+                  <option value="One-time">One-time</option>
+                  <option value="Recurring">Recurring</option>
+                </select>
+              </div>
+              {jobData.type === 'Recurring' && (
+                <div className="flex gap-2">
+                  <div className="flex-1">
+                    <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase">Every</label>
+                    <input type="number" min="1" required value={jobData.interval} onChange={e => setJobData({...jobData, interval: parseInt(e.target.value) || 1})} className="w-full border border-gray-200 rounded-xl p-3 focus:outline-none focus:border-indigo-500" />
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase">Frequency</label>
+                    <select value={jobData.frequency} onChange={e => setJobData({...jobData, frequency: e.target.value})} className="w-full border border-gray-200 rounded-xl p-3 focus:outline-none focus:border-indigo-500 bg-white">
+                      <option value="Days">Days</option>
+                      <option value="Weeks">Weeks</option>
+                      <option value="Months">Months</option>
+                    </select>
+                  </div>
+                </div>
+              )}
+              <div className="mt-auto pt-4 pb-safe">
+                <button type="submit" className="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-indigo-700">Create Job</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+            {/* FILL FORM MODAL */}
+      {selectedForm && (
+        <div className="absolute inset-0 bg-black/40 z-50 flex flex-col justify-end" onClick={() => setSelectedForm(null)}>
+          <div className="bg-white rounded-t-2xl p-5 h-[85%] overflow-y-auto flex flex-col shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-gray-900">{selectedForm}</h2>
+              <button onClick={() => setSelectedForm(null)} className="p-2 bg-gray-100 rounded-full text-gray-600"><X size={20} /></button>
+            </div>
+            <form className="flex flex-col gap-4 flex-1" onSubmit={(e) => {
+              e.preventDefault();
+              alert('Form submitted successfully (UI only)');
+              setSelectedForm(null);
+            }}>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase">Full Name</label>
+                <input required className="w-full border border-gray-200 rounded-xl p-3 focus:outline-none focus:border-indigo-500" placeholder="Client Name" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase">Property Address</label>
+                <input required className="w-full border border-gray-200 rounded-xl p-3 focus:outline-none focus:border-indigo-500" placeholder="123 Main St" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase">Service Needed</label>
+                <select className="w-full border border-gray-200 rounded-xl p-3 focus:outline-none focus:border-indigo-500 bg-white">
+                  <option>Deep Clean</option>
+                  <option>Renovation</option>
+                  <option>Consultation</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase">Additional Notes</label>
+                <textarea rows={3} className="w-full border border-gray-200 rounded-xl p-3 focus:outline-none focus:border-indigo-500 resize-none" placeholder="Tell us more..."></textarea>
+              </div>
+              <div className="mt-auto pt-4 pb-safe">
+                <button type="submit" className="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-indigo-700">Submit Form</button>
+              </div>
+            </form>
           </div>
         </div>
       )}
