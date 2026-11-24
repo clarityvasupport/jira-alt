@@ -70,6 +70,14 @@ export default function App() {
   const [jobs] = useState<Job[]>(mockJobs);
   const [showFabMenu, setShowFabMenu] = useState(false);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [settingsView, setSettingsView] = useState<'main' | 'team' | 'fields' | 'automations'>('main');
+  
+  // Mock Automations State
+  const [automations, setAutomations] = useState([
+    { id: 1, name: 'Auto-assign new leads', active: true },
+    { id: 2, name: 'Send welcome email', active: true },
+    { id: 3, name: 'Create task on stage change', active: false },
+  ]);
   
   // Modals & Drawers
   const [showLeadModal, setShowLeadModal] = useState(false);
@@ -203,19 +211,107 @@ export default function App() {
 
         {/* SETTINGS TAB */}
         {activeTab === 'settings' && (
-          <div className="p-4 h-full overflow-y-auto">
-            <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
-              <div className="p-4 border-b border-gray-100 font-medium hover:bg-gray-50 cursor-pointer flex justify-between items-center">
-                <span>Team Members</span><ChevronRight size={18} className="text-gray-400" />
+          <div className="p-4 h-full overflow-y-auto bg-gray-50">
+            
+            {/* MAIN SETTINGS MENU */}
+            {settingsView === 'main' && (
+              <div className="space-y-4">
+                <div className="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm">
+                  <div onClick={() => setSettingsView('team')} className="p-4 border-b border-gray-100 font-medium hover:bg-gray-50 cursor-pointer flex justify-between items-center">
+                    <div className="flex items-center gap-3 text-gray-800"><Users size={18} className="text-gray-400" /> Team Members</div>
+                    <ChevronRight size={18} className="text-gray-400" />
+                  </div>
+                  <div onClick={() => setSettingsView('fields')} className="p-4 border-b border-gray-100 font-medium hover:bg-gray-50 cursor-pointer flex justify-between items-center">
+                    <div className="flex items-center gap-3 text-gray-800"><LayoutDashboard size={18} className="text-gray-400" /> Custom Fields</div>
+                    <ChevronRight size={18} className="text-gray-400" />
+                  </div>
+                  <div onClick={() => setSettingsView('automations')} className="p-4 border-b border-gray-100 font-medium hover:bg-gray-50 cursor-pointer flex justify-between items-center">
+                    <div className="flex items-center gap-3 text-gray-800"><Settings size={18} className="text-gray-400" /> Automations</div>
+                    <ChevronRight size={18} className="text-gray-400" />
+                  </div>
+                </div>
+                <div className="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm">
+                  <div className="p-4 font-medium text-red-600 hover:bg-red-50 cursor-pointer text-center">Sign Out</div>
+                </div>
+                <p className="text-center text-xs text-gray-400 mt-6">SaaS CRM v1.0.0 • Free Plan</p>
               </div>
-              <div className="p-4 border-b border-gray-100 font-medium hover:bg-gray-50 cursor-pointer flex justify-between items-center">
-                <span>Custom Fields</span><ChevronRight size={18} className="text-gray-400" />
+            )}
+
+            {/* TEAM MEMBERS SUB-PAGE */}
+            {settingsView === 'team' && (
+              <div className="space-y-4 animate-in slide-in-from-right-4 fade-in duration-200">
+                <button onClick={() => setSettingsView('main')} className="text-sm font-semibold text-indigo-600 mb-2 flex items-center gap-1">&larr; Back</button>
+                <div className="flex justify-between items-end mb-4">
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900">Team Members</h2>
+                    <p className="text-xs text-gray-500">3 of 5 users used (Free Plan)</p>
+                  </div>
+                  <button className="bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-lg text-sm font-semibold">+ Invite</button>
+                </div>
+                <div className="bg-white rounded-xl border border-gray-100 shadow-sm divide-y divide-gray-50">
+                  {['Clarity VA (You)', 'Sarah Jenkins', 'Mike Ross'].map((name, i) => (
+                    <div key={name} className="p-4 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-xs">{name.substring(0,2)}</div>
+                        <div>
+                          <div className="font-semibold text-gray-900 text-sm">{name}</div>
+                          <div className="text-xs text-gray-500">{i === 0 ? 'Admin' : 'Field Worker'}</div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className="p-4 border-b border-gray-100 font-medium hover:bg-gray-50 cursor-pointer flex justify-between items-center">
-                <span>Automations</span><ChevronRight size={18} className="text-gray-400" />
+            )}
+
+            {/* CUSTOM FIELDS SUB-PAGE */}
+            {settingsView === 'fields' && (
+              <div className="space-y-4 animate-in slide-in-from-right-4 fade-in duration-200">
+                <button onClick={() => setSettingsView('main')} className="text-sm font-semibold text-indigo-600 mb-2 flex items-center gap-1">&larr; Back</button>
+                <div className="flex justify-between items-end mb-4">
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900">Custom Fields</h2>
+                    <p className="text-xs text-gray-500">2 of 5 fields used</p>
+                  </div>
+                  <button className="bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-lg text-sm font-semibold">+ Add Field</button>
+                </div>
+                <div className="bg-white rounded-xl border border-gray-100 shadow-sm divide-y divide-gray-50">
+                  {['Property Type (Dropdown)', 'Square Footage (Number)'].map(field => (
+                    <div key={field} className="p-4 flex justify-between items-center">
+                      <span className="text-sm font-medium text-gray-800">{field}</span>
+                      <span className="text-xs text-gray-400">Edit</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className="p-4 font-medium text-red-600 hover:bg-red-50 cursor-pointer">Sign Out</div>
-            </div>
+            )}
+
+            {/* AUTOMATIONS SUB-PAGE */}
+            {settingsView === 'automations' && (
+              <div className="space-y-4 animate-in slide-in-from-right-4 fade-in duration-200">
+                <button onClick={() => setSettingsView('main')} className="text-sm font-semibold text-indigo-600 mb-2 flex items-center gap-1">&larr; Back</button>
+                <div className="mb-4">
+                  <h2 className="text-xl font-bold text-gray-900">Automations</h2>
+                  <p className="text-xs text-gray-500">15 of 100 runs used this month</p>
+                </div>
+                <div className="bg-white rounded-xl border border-gray-100 shadow-sm divide-y divide-gray-50">
+                  {automations.map(auto => (
+                    <div key={auto.id} className="p-4 flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-800">{auto.name}</span>
+                      <button 
+                        onClick={() => {
+                          setAutomations(automations.map(a => a.id === auto.id ? { ...a, active: !a.active } : a));
+                        }}
+                        className={`w-11 h-6 rounded-full transition-colors relative ${auto.active ? 'bg-indigo-600' : 'bg-gray-200'}`}
+                      >
+                        <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${auto.active ? 'left-6' : 'left-1'}`}></div>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
           </div>
         )}
 

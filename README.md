@@ -1,30 +1,69 @@
-# SaaS CRM (formerly Jira Alt)
+# Multi-Tenant SaaS CRM
 
 ## Project Overview
-This repository is dedicated to building a **Multi-Tenant SaaS CRM** for service businesses (Cleaning, Renovation, Interior Design). 
+A mobile-first, TikTok-style CRM designed for service businesses (Cleaning, Renovation, Interior Design). 
 
 **The Single Source of Truth:** The product vision is defined in `PRD (2).md`. 
 
-## Tech Stack (Confirmed)
+## Tech Stack
 - **Runtime:** Cloudflare Workers
-- **Deployment Tool:** Wrangler CLI
+- **Deployment:** Wrangler CLI
 - **Backend API:** Hono
-- **Frontend:** React 18+ with Vite (SPA)
+- **Frontend:** React 18+ (Vite) + Tailwind CSS
+- **Icons:** Lucide React
 - **Database:** Cloudflare D1 (SQLite)
-- **Auth:** Google OAuth / Email + KV Sessions
-- **UI/UX:** Mobile-First, TikTok-style vertical feed, Bottom Navigation
+
+## File Tree
+```text
+├── .devcontainer/
+├── migrations/
+│   ├── 0001_create_issues.sql    (Prototype schema)
+│   └── 0002_saas_schema.sql      (Multi-tenant schema)
+├── public/
+├── src/
+│   ├── assets/
+│   ├── worker/
+│   │   └── index.ts              (Hono API Backend)
+│   ├── App.tsx                   (Main React UI & Client Routing)
+│   ├── index.css                 (Tailwind Import)
+│   └── main.tsx                  (React Entry Point)
+├── .gitignore
+├── package.json
+├── PRD (2).md
+├── PROJECT_RULES.md
+├── README.md
+├── tsconfig.json
+├── vite.config.ts                (Vite + Cloudflare + Tailwind config)
+└── wrangler.jsonc                (Cloudflare Worker & D1 binding)
+```
+
+## Navigation Routes (UI State)
+Since this is a Single Page Application (SPA), routing is handled via React state in `App.tsx`.
+
+**Main Tabs (Bottom Nav):**
+- `/` (Home) -> `activeTab === 'home'`: TikTok-style vertical feed of Leads.
+- `/pipeline` -> `activeTab === 'pipeline'`: Kanban board of leads by stage.
+- `/contacts` -> `activeTab === 'contacts'`: Searchable list of contacts.
+- `/jobs` -> `activeTab === 'jobs'`: List of One-time and Recurring jobs.
+- `/settings` -> `activeTab === 'settings'`: Menu for Team, Fields, Automations.
+
+**Overlays & Modals:**
+- `Lead Drawer`: Opens when clicking a lead. Tabs for Details, Activity, Jobs.
+- `Job Drawer`: Opens when clicking a job. Shows task checklist.
+- `Create Lead Modal`: Opens via FAB (+) button.
+- `Settings Sub-pages`: Replaces Settings view with Team/Fields/Automations.
 
 ## Current State
-The initial Vanilla JS prototype (Kanban board) has been successfully pivoted to the React + Hono architecture. The UI is a mobile-first shell (TikTok-style feed) pulling real data from a multi-tenant D1 schema.
+The entire Frontend UI shell is **100% complete** with realistic mock data. All tabs, sub-pages, bottom sheets, and forms are fully interactive. The backend is currently a basic Hono API serving test data from D1.
 
-- [x] Prototype: Initialize repo and Codespaces
-- [x] Prototype: Authenticate Wrangler & create D1 database
-- [x] Prototype: Deploy to Cloudflare Workers
 - [x] **Phase 1:** Initialize React + Vite + Hono architecture.
 - [x] **Phase 2:** Multi-tenant Database Schema (Tenants, Leads).
 - [x] **Phase 3:** Mobile UI Shell (TikTok Feed & Bottom Nav) connected to API.
+- [x] **Phase 4:** Global Detail Drawer (Details, Activity, Jobs) with Mock Data.
+- [x] **Phase 5:** Detailed Jobs UI (Task Checklists, Progress Bars).
+- [x] **Phase 6:** Settings Sub-pages (Team Limits, Custom Fields, Automations).
 
 ## Upcoming
-- [ ] **Phase 4:** "Create Lead" flow (Backend POST route + Mobile Form UI).
-- [ ] **Phase 5:** "View Details" page/modal.
-- [ ] **Phase 6:** Auth & Tenant Isolation.
+- [ ] **Phase 7:** Wire the Frontend to the Backend API (Replace `mockLeads` and `mockJobs` with real `fetch()` calls).
+- [ ] **Phase 8:** Build Hono CRUD routes for Jobs, Activities, and Custom Fields.
+- [ ] **Phase 9:** Implement Auth & Tenant Isolation (Google OAuth).
