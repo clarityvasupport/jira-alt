@@ -6,16 +6,6 @@ type Bindings = {
 
 const app = new Hono<{ Bindings: Bindings }>()
 
-// Health check
-app.get('/', async (c) => {
-  try {
-    const { results } = await c.env.jira_db.prepare('SELECT 1 as ok').all()
-    return c.json({ status: 'ok', db: 'connected', result: results[0] })
-  } catch (e: any) {
-    return c.json({ status: 'error', message: e.message }, 500)
-  }
-})
-
 // Get all issues
 app.get('/issues', async (c) => {
   try {
