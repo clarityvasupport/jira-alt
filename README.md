@@ -11,6 +11,6 @@ Personal project tracker built on Cloudflare's edge stack.
 ## Progress
 - [x] Initialize repo and devcontainer
 - [x] Install Hono, Wrangler, TypeScript
-- [x] Basic local health check (`Hello from Hono`)
-- [ ] Authenticate Wrangler & create D1 database
-- [ ] Deploy to Cloudflare Workers
+- [x] Authenticate Wrangler & create D1 database
+- [x] Deploy to Cloudflare Workers
+- [x] Build Issues CRUD API (Milestone 1)
