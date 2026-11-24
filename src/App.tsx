@@ -1,5 +1,8 @@
 import { useState } from 'react';
-import { Home, Users, Settings, MapPin, ChevronRight, CheckSquare, Search, Plus, X, LayoutDashboard } from 'lucide-react';
+import { 
+  Home, Users, Settings, MapPin, ChevronRight, CheckSquare, Search, Plus, X, 
+  LayoutDashboard, Phone, Mail, DollarSign, Trash2
+} from 'lucide-react';
 
 type Tab = 'home' | 'pipeline' | 'contacts' | 'jobs' | 'settings';
 
@@ -19,13 +22,59 @@ const mockLeads: Lead[] = [
   { id: 3, company: 'Elite Renovations', contact: 'Mike Ross', location: 'Denver, CO', value: '$15,000', status: 'Proposal', description: 'Kitchen and bathroom remodel. Follow up on contract status.' },
 ];
 
+interface Job {
+  id: number;
+  title: string;
+  client: string;
+  type: 'One-time' | 'Recurring';
+  status: 'Pending' | 'In Progress' | 'Completed';
+  progress: number;
+  tasks: { id: number; title: string; completed: boolean }[];
+}
+
+const mockJobs: Job[] = [
+  { 
+    id: 1, 
+    title: 'Deep Clean - Office', 
+    client: 'Sparkle Cleaning Co.', 
+    type: 'Recurring', 
+    status: 'In Progress', 
+    progress: 50,
+    tasks: [
+      { id: 1, title: 'Initial site visit', completed: true },
+      { id: 2, title: 'Deep clean main floor', completed: true },
+      { id: 3, title: 'Clean executive offices', completed: false },
+      { id: 4, title: 'Final walkthrough', completed: false },
+    ]
+  },
+  { 
+    id: 2, 
+    title: 'Kitchen Remodel', 
+    client: 'Elite Renovations', 
+    type: 'One-time', 
+    status: 'Pending', 
+    progress: 0,
+    tasks: [
+      { id: 1, title: 'Demolition', completed: false },
+      { id: 2, title: 'Plumbing rough-in', completed: false },
+      { id: 3, title: 'Cabinet installation', completed: false },
+    ]
+  }
+];
+
 const pipelineStages = ['New Lead', 'Qualified', 'Proposal', 'Closed Won'];
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>('home');
   const [leads, setLeads] = useState<Lead[]>(mockLeads);
+  const [jobs] = useState<Job[]>(mockJobs);
   const [showFabMenu, setShowFabMenu] = useState(false);
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  
+  // Modals & Drawers
   const [showLeadModal, setShowLeadModal] = useState(false);
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  const [drawerTab, setDrawerTab] = useState<'details' | 'activity' | 'jobs'>('details');
   
   // Form State
   const [formData, setFormData] = useState({ company: '', contact: '', location: '', value: '', status: 'New Lead', description: '' });
@@ -46,7 +95,7 @@ export default function App() {
       {/* Main Content Area */}
       <main className="flex-1 overflow-hidden relative bg-gray-50">
         
-        {/* HOME TAB (TikTok-style Feed) */}
+        {/* HOME TAB */}
         {activeTab === 'home' && (
           <div className="h-full w-full overflow-y-auto snap-y snap-mandatory scrollbar-hide">
             {leads.map((lead) => (
@@ -66,7 +115,7 @@ export default function App() {
                   <div className="text-2xl font-mono font-bold text-gray-900 mb-8">{lead.value}</div>
                 </div>
                 <div className="pb-4">
-                  <button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2 transition">
+                  <button onClick={() => { setSelectedLead(lead); setDrawerTab('details'); }} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2 transition">
                     View Details <ChevronRight size={20} />
                   </button>
                 </div>
@@ -79,7 +128,7 @@ export default function App() {
         {activeTab === 'pipeline' && (
           <div className="h-full overflow-x-auto flex gap-4 p-4 items-start snap-x">
             {pipelineStages.map(stage => (
-              <div key={stage} className="w-72 flex-shrink-0 bg-gray-100 rounded-xl p-3 snap-center flex flex-col gap-3">
+              <div key={stage} className="w-72 flex-shrink-0 bg-gray-100 rounded-xl p-3 snap-center flex flex-col gap-3 h-full overflow-y-auto">
                 <div className="flex justify-between items-center px-1">
                   <h3 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">{stage}</h3>
                   <span className="bg-gray-200 text-gray-600 text-xs font-bold px-2 py-0.5 rounded-full">
@@ -87,7 +136,7 @@ export default function App() {
                   </span>
                 </div>
                 {leads.filter(l => l.status === stage).map(lead => (
-                  <div key={lead.id} className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 flex flex-col gap-2">
+                  <div key={lead.id} onClick={() => { setSelectedLead(lead); setDrawerTab('details'); }} className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 flex flex-col gap-2 cursor-pointer hover:border-indigo-300 transition">
                     <div className="font-bold text-gray-900">{lead.company}</div>
                     <div className="text-sm text-gray-500">{lead.contact}</div>
                     <div className="text-sm font-mono text-gray-700 mt-2">{lead.value}</div>
@@ -107,7 +156,7 @@ export default function App() {
             </div>
             <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
               {leads.map(lead => (
-                <div key={lead.id} className="p-4 border-b border-gray-100 flex items-center justify-between hover:bg-gray-50 cursor-pointer">
+                <div key={lead.id} onClick={() => { setSelectedLead(lead); setDrawerTab('details'); }} className="p-4 border-b border-gray-100 flex items-center justify-between hover:bg-gray-50 cursor-pointer">
                   <div>
                     <div className="font-semibold text-gray-900">{lead.contact}</div>
                     <div className="text-sm text-gray-500">{lead.company}</div>
@@ -119,19 +168,35 @@ export default function App() {
           </div>
         )}
 
-        {/* JOBS TAB */}
+                {/* JOBS TAB */}
         {activeTab === 'jobs' && (
           <div className="p-4 h-full overflow-y-auto">
-            <div className="bg-white rounded-xl border border-gray-100 p-4 mb-4 shadow-sm">
-              <div className="flex justify-between items-center mb-2">
-                <h3 className="font-bold text-gray-900">Deep Clean - Office</h3>
-                <span className="text-xs font-bold bg-green-100 text-green-700 px-2 py-1 rounded">In Progress</span>
-              </div>
-              <p className="text-sm text-gray-500 mb-3">Sparkle Cleaning Co. • Recurring (Weekly)</p>
-              <div className="flex gap-2">
-                <button className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg text-sm font-medium">Add Note</button>
-                <button className="flex-1 bg-indigo-50 text-indigo-700 py-2 rounded-lg text-sm font-medium">Complete</button>
-              </div>
+            <div className="flex gap-2 mb-4">
+              <button className="flex-1 bg-indigo-600 text-white py-2 rounded-lg text-sm font-medium shadow-sm">All Jobs</button>
+              <button className="flex-1 bg-white text-gray-600 border border-gray-200 py-2 rounded-lg text-sm font-medium">Recurring</button>
+            </div>
+
+            <div className="space-y-3">
+              {jobs.map(job => (
+                <div key={job.id} onClick={() => setSelectedJob(job)} className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm cursor-pointer hover:border-indigo-300 transition">
+                  <div className="flex justify-between items-center mb-1">
+                    <h3 className="font-bold text-gray-900">{job.title}</h3>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${
+                      job.status === 'Completed' ? 'bg-green-100 text-green-700' : 
+                      job.status === 'In Progress' ? 'bg-blue-100 text-blue-700' : 
+                      'bg-gray-100 text-gray-600'
+                    }`}>
+                      {job.status}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-500 mb-3">{job.client} • {job.type}</p>
+                  
+                  <div className="w-full bg-gray-100 rounded-full h-1.5 mb-1">
+                    <div className="bg-indigo-600 h-1.5 rounded-full" style={{ width: `${job.progress}%` }}></div>
+                  </div>
+                  <div className="text-right text-[10px] font-semibold text-gray-400">{job.progress}% COMPLETE</div>
+                </div>
+              ))}
             </div>
           </div>
         )}
@@ -156,7 +221,7 @@ export default function App() {
 
       </main>
 
-      {/* Floating Action Button (FAB) */}
+      {/* FAB */}
       <div className="absolute bottom-20 right-4 z-30 flex flex-col items-end gap-2">
         {showFabMenu && (
           <div className="bg-white p-2 rounded-xl shadow-lg border border-gray-100 flex flex-col gap-1 w-40 mb-2">
@@ -173,10 +238,118 @@ export default function App() {
         </button>
       </div>
 
-      {/* Create Lead Modal */}
+      {/* GLOBAL DETAIL DRAWER */}
+      {selectedLead && (
+        <div className="absolute inset-0 bg-black/40 z-50 flex flex-col justify-end" onClick={() => setSelectedLead(null)}>
+          <div className="bg-white rounded-t-2xl h-[85%] flex flex-col shadow-2xl animate-slide-up" onClick={(e) => e.stopPropagation()}>
+            {/* Drawer Header */}
+            <div className="p-5 border-b border-gray-100 flex justify-between items-start">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 leading-tight">{selectedLead.company}</h2>
+                <p className="text-gray-500 mt-1">{selectedLead.contact}</p>
+              </div>
+              <button onClick={() => setSelectedLead(null)} className="p-2 bg-gray-100 rounded-full text-gray-600">
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Drawer Tabs */}
+            <div className="flex border-b border-gray-100 px-2">
+              {['details', 'activity', 'jobs'].map(tab => (
+                <button 
+                  key={tab}
+                  onClick={() => setDrawerTab(tab as 'details' | 'activity' | 'jobs')}
+                  className={`flex-1 py-3 text-sm font-semibold capitalize border-b-2 transition ${drawerTab === tab ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-500'}`}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
+
+            {/* Drawer Content */}
+            <div className="flex-1 overflow-y-auto p-5 bg-gray-50">
+              {drawerTab === 'details' && (
+                <div className="space-y-4">
+                  <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-green-100 text-green-700 rounded-lg"><DollarSign size={20} /></div>
+                      <div>
+                        <div className="text-xs text-gray-500 uppercase font-semibold">Deal Value</div>
+                        <div className="font-bold text-gray-900">{selectedLead.value}</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                    <div className="p-4 border-b border-gray-50 flex items-center gap-3">
+                      <Phone size={18} className="text-gray-400" />
+                      <span className="text-gray-700 font-medium">+1 (555) 123-4567</span>
+                    </div>
+                    <div className="p-4 border-b border-gray-50 flex items-center gap-3">
+                      <Mail size={18} className="text-gray-400" />
+                      <span className="text-gray-700 font-medium">{selectedLead.contact.toLowerCase().replace(' ', '.')}@example.com</span>
+                    </div>
+                    <div className="p-4 flex items-center gap-3">
+                      <MapPin size={18} className="text-gray-400" />
+                      <span className="text-gray-700 font-medium">{selectedLead.location}</span>
+                    </div>
+                  </div>
+
+                  <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                    <h4 className="text-sm font-semibold text-gray-900 mb-2">Description</h4>
+                    <p className="text-gray-600 text-sm leading-relaxed">{selectedLead.description}</p>
+                  </div>
+
+                  <button className="w-full py-3 bg-white border border-red-200 text-red-600 font-semibold rounded-xl flex items-center justify-center gap-2 hover:bg-red-50 transition">
+                    <Trash2 size={18} /> Delete Lead
+                  </button>
+                </div>
+              )}
+
+              {drawerTab === 'activity' && (
+                <div className="space-y-4">
+                  <button className="w-full py-3 bg-indigo-50 text-indigo-700 font-semibold rounded-xl border border-indigo-100 mb-4">
+                    + Add Note
+                  </button>
+                  <div className="relative border-l-2 border-gray-200 ml-3 space-y-6 pb-4">
+                    <div className="relative pl-6">
+                      <div className="absolute -left-[9px] top-1 w-4 h-4 bg-indigo-600 border-4 border-white rounded-full"></div>
+                      <div className="text-xs text-gray-400 font-medium mb-1">Today, 10:30 AM</div>
+                      <div className="bg-white p-3 rounded-lg border border-gray-100 shadow-sm text-sm text-gray-700">Status updated to <strong className="text-indigo-600">{selectedLead.status}</strong>.</div>
+                    </div>
+                    <div className="relative pl-6">
+                      <div className="absolute -left-[9px] top-1 w-4 h-4 bg-gray-300 border-4 border-white rounded-full"></div>
+                      <div className="text-xs text-gray-400 font-medium mb-1">Yesterday, 2:15 PM</div>
+                      <div className="bg-white p-3 rounded-lg border border-gray-100 shadow-sm text-sm text-gray-700">Called {selectedLead.contact}. Left a voicemail regarding the quote.</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {drawerTab === 'jobs' && (
+                <div className="space-y-4">
+                  <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                    <div className="flex justify-between items-center mb-2">
+                      <h4 className="font-bold text-gray-900 text-sm">Initial Site Visit</h4>
+                      <span className="text-xs font-bold bg-gray-100 text-gray-600 px-2 py-0.5 rounded">Pending</span>
+                    </div>
+                    <p className="text-xs text-gray-500 mb-3">Assigned to: You</p>
+                    <div className="flex items-center gap-2 text-xs font-medium text-gray-700">
+                      <input type="checkbox" className="rounded text-indigo-600 w-4 h-4" />
+                      Mark as complete
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CREATE LEAD MODAL */}
       {showLeadModal && (
-        <div className="absolute inset-0 bg-black/40 z-50 flex flex-col justify-end">
-          <div className="bg-white rounded-t-2xl p-5 h-[85%] overflow-y-auto flex flex-col shadow-2xl animate-slide-up">
+        <div className="absolute inset-0 bg-black/40 z-50 flex flex-col justify-end" onClick={() => setShowLeadModal(false)}>
+          <div className="bg-white rounded-t-2xl p-5 h-[85%] overflow-y-auto flex flex-col shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-gray-900">New Lead</h2>
               <button onClick={() => setShowLeadModal(false)} className="p-2 bg-gray-100 rounded-full text-gray-600"><X size={20} /></button>
@@ -215,6 +388,50 @@ export default function App() {
                 <button type="submit" className="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-indigo-700">Save Lead</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* JOB DETAIL DRAWER */}
+      {selectedJob && (
+        <div className="absolute inset-0 bg-black/40 z-50 flex flex-col justify-end" onClick={() => setSelectedJob(null)}>
+          <div className="bg-white rounded-t-2xl h-[85%] flex flex-col shadow-2xl animate-slide-up" onClick={(e) => e.stopPropagation()}>
+            <div className="p-5 border-b border-gray-100 flex justify-between items-start">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900 leading-tight">{selectedJob.title}</h2>
+                <p className="text-gray-500 mt-1 text-sm">{selectedJob.client}</p>
+              </div>
+              <button onClick={() => setSelectedJob(null)} className="p-2 bg-gray-100 rounded-full text-gray-600">
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-5 bg-gray-50 space-y-4">
+              <div className="flex gap-2">
+                 <span className="bg-indigo-50 text-indigo-700 text-xs font-semibold px-3 py-1 rounded-full border border-indigo-100">{selectedJob.type}</span>
+                 <span className="bg-gray-100 text-gray-600 text-xs font-semibold px-3 py-1 rounded-full">{selectedJob.status}</span>
+              </div>
+
+              <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                <div className="p-4 border-b border-gray-50 bg-gray-50/50">
+                  <h4 className="font-semibold text-gray-800 text-sm">Task Checklist</h4>
+                </div>
+                <div className="divide-y divide-gray-50">
+                  {selectedJob.tasks.map(task => (
+                    <div key={task.id} className="p-4 flex items-center gap-3">
+                      <input type="checkbox" checked={task.completed} readOnly className="w-5 h-5 rounded text-indigo-600 border-gray-300 focus:ring-indigo-500" />
+                      <span className={`text-sm ${task.completed ? 'line-through text-gray-400' : 'text-gray-700 font-medium'}`}>
+                        {task.title}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <button className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow-sm transition">
+                Update Job Status
+              </button>
+            </div>
           </div>
         </div>
       )}
