@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Home, Users, Settings, MapPin, ChevronRight, CheckSquare, Search, Plus, X, 
   LayoutDashboard, Phone, Mail, DollarSign, Trash2
@@ -34,42 +34,17 @@ interface Job {
   tasks: { id: number; title: string; completed: boolean }[];
 }
 
-const mockJobs: Job[] = [
-  { 
-    id: 1, 
-    title: 'Deep Clean - Office', 
-    client: 'Sparkle Cleaning Co.', 
-    type: 'Recurring', 
-    frequency: 'Weeks',
-    interval: 2,
-    status: 'In Progress', 
-    progress: 50,
-    tasks: [
-      { id: 1, title: 'Initial site visit', completed: true },
-      { id: 2, title: 'Deep clean main floor', completed: true },
-      { id: 3, title: 'Clean executive offices', completed: false },
-      { id: 4, title: 'Final walkthrough', completed: false },
-    ]
-  },
-  { 
-    id: 2, 
-    title: 'Kitchen Remodel', 
-    client: 'Elite Renovations', 
-    type: 'One-time', 
-    status: 'Pending', 
-    progress: 0,
-    tasks: [
-      { id: 1, title: 'Demolition', completed: false },
-      { id: 2, title: 'Plumbing rough-in', completed: false },
-      { id: 3, title: 'Cabinet installation', completed: false },
-    ]
-  }
-];
-
 export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>('home');
   const [leads, setLeads] = useState<Lead[]>(mockLeads);
-  const [jobs, setJobs] = useState<Job[]>(mockJobs);
+  const [jobs, setJobs] = useState<Job[]>([]);
+
+  useEffect(() => {
+    fetch('/api/jobs')
+      .then(res => res.json())
+      .then(data => setJobs(data))
+      .catch(err => console.error("Failed to fetch jobs:", err));
+  }, []);
   const [showFabMenu, setShowFabMenu] = useState(false);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [settingsView, setSettingsView] = useState<'main' | 'team' | 'fields' | 'automations' | 'forms' | 'pipeline'>('main');
