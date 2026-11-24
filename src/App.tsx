@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Home, Briefcase, Users, Settings, MapPin, ChevronRight } from 'lucide-react';
 
 type Tab = 'home' | 'pipeline' | 'contacts' | 'settings';
@@ -13,14 +13,16 @@ interface Lead {
   description: string;
 }
 
-const mockLeads: Lead[] = [
-  { id: 1, company: 'Sparkle Cleaning Co.', contact: 'Sarah Jenkins', location: 'Austin, TX', value: '$1,200/mo', status: 'New Lead', description: 'Looking for weekly commercial cleaning for a 5,000 sq ft office space.' },
-  { id: 2, company: 'Modern Design Studio', contact: 'David Chen', location: 'Seattle, WA', value: '$8,500', status: 'Qualified', description: 'Full interior renovation for a new downtown office. Needs quote by Friday.' },
-  { id: 3, company: 'Elite Renovations', contact: 'Mike Ross', location: 'Denver, CO', value: '$15,000', status: 'Proposal Sent', description: 'Kitchen and bathroom remodel. Follow up on contract status.' },
-];
-
 function App() {
   const [activeTab, setActiveTab] = useState<Tab>('home');
+  const [leads, setLeads] = useState<Lead[]>([]);
+
+  useEffect(() => {
+    fetch('/api/leads')
+      .then(res => res.json())
+      .then(data => setLeads(data))
+      .catch(err => console.error("Failed to fetch leads:", err));
+  }, []);
 
   return (
     // Mobile App Container
@@ -40,7 +42,7 @@ function App() {
         {/* HOME TAB (TikTok-style Feed) */}
         {activeTab === 'home' && (
           <div className="h-full w-full overflow-y-auto snap-y snap-mandatory scrollbar-hide" style={{ scrollSnapType: 'y mandatory' }}>
-            {mockLeads.map((lead) => (
+            {leads.map((lead) => (
               <div key={lead.id} className="h-full w-full snap-start snap-always p-4 flex flex-col bg-white border-b border-gray-100">
                 <div className="flex-1 flex flex-col justify-center">
                   <div className="inline-block px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-semibold w-max mb-4 border border-indigo-100">
@@ -98,7 +100,7 @@ function App() {
           <div className="p-4 h-full overflow-y-auto">
             <h1 className="text-2xl font-bold text-gray-900 mb-4 mt-2">Contacts</h1>
             <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-              {mockLeads.map(lead => (
+              {leads.map(lead => (
                 <div key={lead.id} className="p-4 border-b border-gray-100 flex items-center justify-between hover:bg-gray-50 cursor-pointer">
                   <div>
                     <div className="font-semibold text-gray-900">{lead.contact}</div>

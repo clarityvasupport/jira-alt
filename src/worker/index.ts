@@ -7,13 +7,15 @@ type Bindings = {
 
 const app = new Hono<{ Bindings: Bindings }>()
 
-app.get('/api/health', async (c) => {
+// Fetch real leads
+app.get('/api/leads', async (c) => {
   try {
-    const { results } = await c.env.DB.prepare('SELECT 1 as ok').all()
-    return c.json({ status: 'ok', db: 'connected', result: results[0] })
+    // Hardcoding tenant_1 for now until we build Auth
+    const { results } = await c.env.DB.prepare('SELECT * FROM leads WHERE tenant_id = ?1 ORDER BY created_at DESC').bind('tenant_1').all()
+    return c.json(results)
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : String(e)
-    return c.json({ status: 'error', message }, 500)
+    return c.json({ error: message }, 500)
   }
 })
 
